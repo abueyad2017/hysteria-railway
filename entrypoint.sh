@@ -1,34 +1,51 @@
 #!/bin/bash
 
-mkdir -p /etc/hysteria
+mkdir -p /etc/xray
 
-# توليد شهادة TLS ذاتية
+# توليد شهادة TLS
 openssl req -x509 -nodes -newkey rsa:2048 \
--keyout /etc/hysteria/server.key \
--out /etc/hysteria/server.crt \
+-keyout /etc/xray/key.pem \
+-out /etc/xray/cert.pem \
 -days 3650 \
 -subj "/CN=www.cloudflare.com"
 
-# إنشاء config
-cat > /etc/hysteria/config.yaml <<EOF
-listen: :${PORT:-443}
+# إعداد البورت من Railway
+PORT=${PORT:-443}
 
-tls:
-  cert: /etc/hysteria/server.crt
-  key: /etc/hysteria/server.key
-
-auth:
-  type: password
-  password: ${HY2_PASSWORD:-123456}
-
-masquerade:
-  type: proxy
-  proxy:
-    url: https://www.cloudflare.com
-
-bandwidth:
-  up: 100 mbps
-  down: 100 mbps
+# إنشاء config النهائي
+cat > /etc/xray/config.json <<EOF
+{
+  "inbounds": [
+    {
+      "port": ${PORT},
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "${PASSWORD:-123456}"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {
+              "certificateFile": "/etc/xray/cert.pem",
+              "keyFile": "/etc/xray/key.pem"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom"
+    }
+  ]
+}
 EOF
 
-exec hysteria server -c /etc/hysteria/config.yaml
+exec xray run -c /etc/xray/config.json

@@ -1,17 +1,18 @@
-FROM ubuntu:22.04
+FROM alpine:latest
 
-# تحديث المستودعات وتثبيت الأدوات الضرورية
-RUN apt-get update && apt-get install -y \
-    curl \
-    wget \
-    sudo \
-    && rm -rf /var/lib/apt/lists/*
+# تثبيت المتطلبات (Hysteria + Python للواجهة + Openssl)
+RUN apk add --no-cache ca-certificates bash openssl curl python3
 
-# تثبيت سكربت 3X-UI المستقر (أفضل للألعاب والمكالمات)
-RUN curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh | bash -s -- -y
+# تحميل Hysteria2
+RUN curl -Lo /app/hysteria https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 && \
+    chmod +x /app/hysteria
 
-WORKDIR /root
+WORKDIR /app
+COPY . .
+RUN chmod +x entrypoint.sh
 
-# أمر ضروري لمنع الحاوية من التوقف
-CMD ["tail", "-f", "/dev/null"]
-CMD ["/usr/local/x-ui/x-ui"]
+# المتغيرات الأساسية (يمكنك تغييرها من إعدادات Railway)
+ENV PORT=8080
+ENV PASSWORD=abu_eyad_2026
+
+ENTRYPOINT ["/app/entrypoint.sh"]

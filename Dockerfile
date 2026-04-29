@@ -7,7 +7,7 @@ RUN curl -L -o /usr/local/bin/hysteria \
     https://github.com/apernet/hysteria/releases/download/app/v2.6.1/hysteria-linux-amd64 && \
     chmod +x /usr/local/bin/hysteria
 
-# تحميل gost (بديل udp2raw، لا يحتاج صلاحيات خاصة)
+# تحميل gost (لا يحتاج صلاحيات خاصة)
 RUN curl -L -o /usr/local/bin/gost \
     https://github.com/ginuerzh/gost/releases/download/v2.11.5/gost-linux-amd64-2.11.5.gz && \
     gzip -d /usr/local/bin/gost.gz && \

@@ -2,11 +2,20 @@
 
 mkdir -p /etc/hysteria
 
+# توليد شهادة TLS ذاتية
+openssl req -x509 -nodes -newkey rsa:2048 \
+-keyout /etc/hysteria/server.key \
+-out /etc/hysteria/server.crt \
+-days 3650 \
+-subj "/CN=www.cloudflare.com"
+
+# إنشاء config
 cat > /etc/hysteria/config.yaml <<EOF
 listen: :${PORT:-443}
 
 tls:
-  selfSigned: true
+  cert: /etc/hysteria/server.crt
+  key: /etc/hysteria/server.key
 
 auth:
   type: password
